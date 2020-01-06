@@ -1,5 +1,7 @@
 package com.leetcode;
 
+import java.util.Arrays;
+
 /**
  * 班上有 N 名学生。其中有些人是朋友，有些则不是。他们的友谊具有是传递性。
  * 如果已知 A 是 B 的朋友，B 是 C 的朋友，那么我们可以认为 A 也是 C 的朋友。
@@ -61,25 +63,15 @@ public class Solution547findCircleNum {
 //    }
 
 
-
     //并查集
     public int findCircleNum(int[][] M) {
-        if (M == null || M.length < 1) return 0;
-        int[] dx = {-1, 1, 0, 0};
-        int[] dy = {0, 0, -1, 1};
+        if (M == null || M.length == 0) return 0;
         int len = M.length;
         UnionFind unionFind = new UnionFind(M);
         for (int i = 0; i < len; i++) {
-            for (int j = 0; j < i; j++) {
-                if (M[i][j] == 0 || i == j) continue;
-                for (int k = 0; k < 4; k++) {//向四个方向扩散
-                    int x = i + dx[k];
-                    int y = j + dy[k];
-                    //判断边界
-                    if (x < len && y < len && x >=0 && y >=0 && M[x][y] == 1){
-                        unionFind.union(x,y);
-                    }
-                }
+            for (int j = 0; j < len; j++) {
+                //合并一下
+                unionFind.union(i,j);
             }
         }
         return unionFind.count;
@@ -92,41 +84,20 @@ public class Solution547findCircleNum {
 
         public UnionFind(int[][] m) {
             int len = m.length;
-            roots = new int[len * len];
-            count = 0;
-            //初始化并查集
-            for (int i = 0; i < len; i++) {
-                for (int j = 0; j < len; j++) {
-                    if (m[i][j] == 1) {
-                        roots[i * len + j] = i * len + j;
-                        count++;//count表示root的个数，初始化时各自为营
-                    }
-                }
-            }
+            roots = new int[len];
+            count = len;//朋友圈最多len个，各自为营
+            Arrays.fill(roots, -1);
         }
-
-        public int find(int i) {
-            int root = i;
-            //找到集合的root
-            while (root != roots[root]) {
-                root = roots[root];
-            }
-            //压缩为：第一层是root，第二层是所有的子节点
-            while (i != roots[i]) {
-                int parent = roots[i];
-                roots[i] = root;
-                i = parent;
-            }
-            return root;
-        }
-
-        public void union(int x, int y) {
-            int xRoot = roots[x];
-            int yRoot = roots[y];
+        public void union(int x,int y) {
+            int xRoot = find(x);
+            int yRoot = find(y);
             if (xRoot != yRoot) {
-                roots[xRoot] = yRoot;
+                roots[yRoot] = xRoot;
                 count--;
             }
+        }
+        private int find(int i) {
+           return roots[i] == -1 ? i : find(roots[i]);
         }
     }
 }
